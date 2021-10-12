@@ -1,16 +1,17 @@
-const ATTACK = 10; //0
-const STRONG_ATTACK = 14; //1
-const MONSTER_ATTACK = 20;
-const HEAL = 15;
+const ATTACK_VALUE = 10; //0
+const STRONG_ATTACK_VALUE = 14; //1
+const MONSTER_ATTACK_VALUE = 20;
+const HEAL_VALUE = 15;
 
 const maxLifeInput = prompt("Choose yours maxlife and enemy's.","100");
-const MODE_ATTACK = 0; //normal attack 0
-const MODE_ATTACK_STRONG = 1; //strong attack 1
+const NORMAL_ATTACK = 0; //normal attack 0
+const STRONG_ATTACK = 1; //strong attack 1
 //log
 const LOG_EV_PLAYER_ATTACK = "Player normal attack";
 const LOG_EV_PLAYER_STRONG_ATTACK = "Player strong attack";
 const LOG_EV_MONSTER_ATTACK = "Monster attack";
 const LOG_EV_HEAL = "Player heal";
+const LOG_EV_GAME_OVER = "Game Over";
 
 if (isNaN(maxLifeInput) || maxLifeInput <= 0){
   maxLife = 100;
@@ -53,21 +54,9 @@ function writeToLog(ev, val, monsterHealth, playerHealth){
 
 function endRound (){
   const initialPlayerLife = currentPlayerHealth;
-  const monsterDamage = dealPlayerDamage(MONSTER_ATTACK);
+  const monsterDamage = dealPlayerDamage(MONSTER_ATTACK_VALUE);
   currentPlayerHealth -= monsterDamage;
-  writeToLog(LOG_EV_MONSTER_ATTACK, monsterDamage, currentMosnsterHealth, currentPlayerHealth);
-
-  if (currentMosnsterHealth <= 0 && currentPlayerHealth > 0) {
-    alert("You won!")
-    reset();
-  }else if (currentPlayerHealth <= 0 && currentMosnsterHealth > 0){
-    alert ("You lost!")
-    reset();
-  }else if (currentPlayerHealth <= 0 && currentMosnsterHealth <= 0){
-    alert ("You have a draw");
-    reset();
-  }
-
+  
   if (currentPlayerHealth <= 0 && hasBonusLife === true){
     hasBonusLife = false;
     removeBonusLife();
@@ -75,38 +64,84 @@ function endRound (){
     alert("The bonus life saved you!");
     setPlayerHealth(initialPlayerLife);
   }
+
+  writeToLog(
+    LOG_EV_MONSTER_ATTACK,
+    "Damage: " + monsterDamage.toFixed(2),
+    currentMosnsterHealth,
+    currentPlayerHealth
+  );
+
+  if (currentMosnsterHealth <= 0 && currentPlayerHealth > 0) {
+    alert("You won!")
+    writeToLog(
+      LOG_EV_GAME_OVER,
+      "Player won",
+      currentMosnsterHealth,
+      currentPlayerHealth
+      );
+    reset();
+  }else if (currentPlayerHealth <= 0 && currentMosnsterHealth > 0){
+    alert ("You lost!")
+    writeToLog(
+      LOG_EV_GAME_OVER,
+      "Monster won",
+      currentMosnsterHealth,
+      currentPlayerHealth
+      );
+    reset();
+  }else if (currentPlayerHealth <= 0 && currentMosnsterHealth <= 0){
+    alert ("You have a draw");
+    writeToLog(
+      LOG_EV_GAME_OVER,
+      "Draw",
+      currentMosnsterHealth,
+      currentPlayerHealth
+      );
+    reset();
+  }
 }
 
 function attackMonster (mode){
-  let maxDmg;
+  // const damage = mode === NORMAL_ATTACK ? ATTACK : STRONG_ATTACK;
+  // const dmgMode = mode === NORMAL_ATTACK ? LOG_EV_PLAYER_ATTACK : LOG_EV_PLAYER_STRONG_ATTACK;
   if (mode === 0){
-    maxDmg = ATTACK
+    damage = ATTACK_VALUE;
+    dmgMode = LOG_EV_PLAYER_ATTACK;
   }else if (mode === 1){
-    maxDmg = STRONG_ATTACK
+    damage = STRONG_ATTACK_VALUE;
+    dmgMode = LOG_EV_PLAYER_STRONG_ATTACK
   }
-  const playerDamage = dealMonsterDamage(maxDmg);
+  const playerDamage = dealMonsterDamage(damage);
   currentMosnsterHealth -= playerDamage;
+  writeToLog(dmgMode, "Damage: "+ damage.toFixed(2), currentMosnsterHealth, currentPlayerHealth);
   endRound();
 }
 
 function attackHandler(){ 
-  attackMonster(MODE_ATTACK);
+  attackMonster(NORMAL_ATTACK);
  }
 
 function strongAttackHandler(){
-  attackMonster(MODE_ATTACK_STRONG);
+  attackMonster(STRONG_ATTACK);
 }
 
 function healHandler(){
   let healValue;
-  if (currentPlayerHealth >= maxLife - HEAL){
+  if (currentPlayerHealth >= maxLife - HEAL_VALUE){
     alert("You can't heal more than your initial health.")
     healValue = maxLife - currentPlayerHealth;
   }else {
-    healValue = HEAL
+    healValue = HEAL_VALUE
   }
   increasePlayerHealth(healValue);
   currentPlayerHealth += healValue;
+  writeToLog(
+    LOG_EV_HEAL,
+    healValue,
+    currentMosnsterHealth,
+    currentPlayerHealth
+    );
   endRound();
 }
 

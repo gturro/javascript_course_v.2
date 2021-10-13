@@ -103,15 +103,15 @@ function endRound (){
 }
 
 function attackMonster (mode){
-  // const damage = mode === NORMAL_ATTACK ? ATTACK : STRONG_ATTACK;
-  // const dmgMode = mode === NORMAL_ATTACK ? LOG_EV_PLAYER_ATTACK : LOG_EV_PLAYER_STRONG_ATTACK;
-  if (mode === 0){
-    damage = ATTACK_VALUE;
-    dmgMode = LOG_EV_PLAYER_ATTACK;
-  }else if (mode === 1){
-    damage = STRONG_ATTACK_VALUE;
-    dmgMode = LOG_EV_PLAYER_STRONG_ATTACK
-  }
+  const damage = mode === NORMAL_ATTACK ? ATTACK_VALUE : STRONG_ATTACK_VALUE;
+  const dmgMode = mode === NORMAL_ATTACK ? LOG_EV_PLAYER_ATTACK : LOG_EV_PLAYER_STRONG_ATTACK;
+  // if (mode === 0){
+  //   damage = ATTACK_VALUE;
+  //   dmgMode = LOG_EV_PLAYER_ATTACK;
+  // }else if (mode === 1){
+  //   damage = STRONG_ATTACK_VALUE;
+  //   dmgMode = LOG_EV_PLAYER_STRONG_ATTACK
+  // }
   const playerDamage = dealMonsterDamage(damage);
   currentMosnsterHealth -= playerDamage;
   writeToLog(dmgMode, "Damage: "+ damage.toFixed(2), currentMosnsterHealth, currentPlayerHealth);
@@ -143,10 +143,27 @@ function healHandler(){
     currentPlayerHealth
     );
   endRound();
-}
+};
 
+//use of loops to display a better looking log
 function printLogHandler(){
-  console.log(battleLog);
+  // for (let i = 1; i<battleLog.length; i++){
+  //   console.log(i);
+  //   console.log(battleLog[i]);
+  // }
+  // let i = 1
+  // for (logEntry of battleLog){
+  //   console.log(i);
+  //   console.log(logEntry);
+  //   i++;
+  let i = 0;
+  for (const logEntry of battleLog){
+    console.log(`#${i}`);
+    for (key in logEntry){
+      console.log(`${key} ==> ${logEntry[key]}`);
+    }
+  i++;
+  };
 };
 
 attackBtn.addEventListener('click', attackHandler);

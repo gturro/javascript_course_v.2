@@ -1,36 +1,53 @@
-const ATTACK_VALUE = 10; //0
-const STRONG_ATTACK_VALUE = 14; //1
-const MONSTER_ATTACK_VALUE = 20;
-const HEAL_VALUE = 15;
+let player = {
+  ATTACK_VALUE : 10,
+  STRONG_ATTACK_VALUE : 14,
+  HEAL_VALUE : 15
+};
 
-const maxLifeInput = prompt("Choose yours maxlife and enemy's.","100");
-const NORMAL_ATTACK = 0; //normal attack 0
-const STRONG_ATTACK = 1; //strong attack 1
+let monster = {
+  ATTACK_VALUE : 20
+};
+
+let maxLife;
+
+//attack mode
+const NORMAL_ATTACK = 0;
+const STRONG_ATTACK = 1; 
+
 //log
-const LOG_EV_PLAYER_ATTACK = "Player normal attack";
-const LOG_EV_PLAYER_STRONG_ATTACK = "Player strong attack";
-const LOG_EV_MONSTER_ATTACK = "Monster attack";
-const LOG_EV_HEAL = "Player heal";
-const LOG_EV_GAME_OVER = "Game Over";
+const logEvent = {
+  PLAYER_ATTACK : "Player normal attack",
+  PLAYER_STRONG_ATTACK : "Player strong attack",
+  MONSTER_ATTACK : "Monster attack",
+  HEAL : "Player heal",
+  GAME_OVER : "Game Over"
+};
 
-if (isNaN(maxLifeInput) || maxLifeInput <= 0){
-  maxLife = 100;
-}
 
-let maxLife = parseInt(maxLifeInput);
-let currentPlayerHealth = maxLife;
-let currentMosnsterHealth = maxLife;
+
 let hasBonusLife = true;
 let battleLog = [];
 
 
+
+setMaxLife();
 //max life visual adjust 
 adjustHealthBars(maxLife);
 
+function setMaxLife(){
+  const maxLifeInput = prompt("Choose yours maxlife and enemy's.","100");
+  maxLife = parseInt(maxLifeInput);
+  if (isNaN(maxLifeInput) || maxLifeInput <= 0){
+    maxLife = 100;
+  }
+  player.health = maxLife;
+  monster.health = maxLife;
+};
+
 function reset(){
-  currentPlayerHealth = maxLife;
-  currentMosnsterHealth = maxLife;
-  resetGame(maxLife); 
+  player.health = maxLife;
+  monster.health = maxLife;
+  resetGameBars(maxLife); 
 }
 
 function writeToLog(ev, val, monsterHealth, playerHealth){
@@ -40,81 +57,71 @@ function writeToLog(ev, val, monsterHealth, playerHealth){
     finalMonsterHealth: monsterHealth,
     finalPlayerHealth: playerHealth,
   };
-  if (ev === LOG_EV_PLAYER_ATTACK){
+  if (ev === logEvent.PLAYER_ATTACK || ev === logEvent.PLAYER_STRONG_ATTACK){
     logEntry.target = "Monster";
-  }else if (ev === LOG_EV_PLAYER_STRONG_ATTACK){
-    logEntry.target = "Monster";
-  }else if (ev === LOG_EV_MONSTER_ATTACK){
-    logEntry.target = "Player";
-  }else if (ev === LOG_EV_HEAL){
+  }else if (ev === logEvent.MONSTER_ATTACK || ev === logEvent.HEAL){
     logEntry.target = "Player";
   }
   battleLog.push(logEntry);
 }
 
 function endRound (){
-  const initialPlayerLife = currentPlayerHealth;
-  const monsterDamage = dealPlayerDamage(MONSTER_ATTACK_VALUE);
-  currentPlayerHealth -= monsterDamage;
+  const initialPlayerHealth = player.health;
+  const monsterDamage = dealPlayerDamage(monster.ATTACK_VALUE);
+  player.health -= monsterDamage;
   
-  if (currentPlayerHealth <= 0 && hasBonusLife === true){
+  if (player.health <= 0 && hasBonusLife === true){
     hasBonusLife = false;
     removeBonusLife();
-    currentPlayerHealth = initialPlayerLife
+    player.health = initialPlayerHealth
     alert("The bonus life saved you!");
-    setPlayerHealth(initialPlayerLife);
+    setPlayerHealth(initialPlayerHealth);
   }
 
   writeToLog(
-    LOG_EV_MONSTER_ATTACK,
+    logEvent.MONSTER_ATTACK,
     "Damage: " + monsterDamage.toFixed(2),
-    currentMosnsterHealth,
-    currentPlayerHealth
+    monster.health,
+    player.health
   );
 
-  if (currentMosnsterHealth <= 0 && currentPlayerHealth > 0) {
+  if (monster.health <= 0 && player.health > 0) {
     alert("You won!")
     writeToLog(
-      LOG_EV_GAME_OVER,
+      logEvent.GAME_OVER,
       "Player won",
-      currentMosnsterHealth,
-      currentPlayerHealth
+      monster.health,
+      player.health
       );
     reset();
-  }else if (currentPlayerHealth <= 0 && currentMosnsterHealth > 0){
+  }else if (player.health <= 0 && monster.health > 0){
     alert ("You lost!")
     writeToLog(
-      LOG_EV_GAME_OVER,
+      logEvent.GAME_OVER,
       "Monster won",
-      currentMosnsterHealth,
-      currentPlayerHealth
+      monster.health,
+      player.health
       );
     reset();
-  }else if (currentPlayerHealth <= 0 && currentMosnsterHealth <= 0){
+  }else if (player.health <= 0 && monster.health <= 0){
     alert ("You have a draw");
     writeToLog(
-      LOG_EV_GAME_OVER,
+      logEvent.GAME_OVER,
       "Draw",
-      currentMosnsterHealth,
-      currentPlayerHealth
+      monster.health,
+      player.health
       );
     reset();
   }
 }
 
 function attackMonster (mode){
-  const damage = mode === NORMAL_ATTACK ? ATTACK_VALUE : STRONG_ATTACK_VALUE;
-  const dmgMode = mode === NORMAL_ATTACK ? LOG_EV_PLAYER_ATTACK : LOG_EV_PLAYER_STRONG_ATTACK;
-  // if (mode === 0){
-  //   damage = ATTACK_VALUE;
-  //   dmgMode = LOG_EV_PLAYER_ATTACK;
-  // }else if (mode === 1){
-  //   damage = STRONG_ATTACK_VALUE;
-  //   dmgMode = LOG_EV_PLAYER_STRONG_ATTACK
-  // }
+  const damage = mode === NORMAL_ATTACK ? player.ATTACK_VALUE : player.STRONG_ATTACK_VALUE;
+  const dmgMode = mode === NORMAL_ATTACK ? logEvent.PLAYER_ATTACK : logEvent.PLAYER_STRONG_ATTACK;
   const playerDamage = dealMonsterDamage(damage);
-  currentMosnsterHealth -= playerDamage;
-  writeToLog(dmgMode, "Damage: "+ damage.toFixed(2), currentMosnsterHealth, currentPlayerHealth);
+  
+  monster.health -= playerDamage;
+  writeToLog(dmgMode, "Damage: "+ damage.toFixed(2), monster.health, player.health);
   endRound();
 }
 
@@ -128,38 +135,28 @@ function strongAttackHandler(){
 
 function healHandler(){
   let healValue;
-  if (currentPlayerHealth >= maxLife - HEAL_VALUE){
+  if (player.health >= maxLife - player.HEAL_VALUE){
     alert("You can't heal more than your initial health.")
-    healValue = maxLife - currentPlayerHealth;
+    healValue = maxLife - player.health;
   }else {
-    healValue = HEAL_VALUE
+    healValue = player.HEAL_VALUE;
   }
   increasePlayerHealth(healValue);
-  currentPlayerHealth += healValue;
+  player.health += healValue;
   writeToLog(
-    LOG_EV_HEAL,
+    logEvent.HEAL,
     healValue,
-    currentMosnsterHealth,
-    currentPlayerHealth
+    monster.health,
+    player.health
     );
   endRound();
 };
 
-//use of loops to display a better looking log
 function printLogHandler(){
-  // for (let i = 1; i<battleLog.length; i++){
-  //   console.log(i);
-  //   console.log(battleLog[i]);
-  // }
-  // let i = 1
-  // for (logEntry of battleLog){
-  //   console.log(i);
-  //   console.log(logEntry);
-  //   i++;
   let i = 0;
   for (const logEntry of battleLog){
     console.log(`#${i}`);
-    for (key in logEntry){
+    for (let key in logEntry){
       console.log(`${key} ==> ${logEntry[key]}`);
     }
   i++;
